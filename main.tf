@@ -332,8 +332,8 @@ resource "google_compute_firewall" "allow_web_to_ilb" {
     protocol = "tcp"
     ports    = ["80", "443", "8080"]
   }
-  source_ranges           = ["10.0.1.0/24"]
-  target_tags             = ["app-tier-backend"]
+  source_ranges = ["10.0.1.0/24"]
+  target_tags   = ["app-tier-backend"]
 
 }
 
@@ -375,17 +375,6 @@ resource "google_compute_instance" "db_primary" {
     subnetwork = google_compute_subnetwork.dbtier-subnet.id
     network    = google_compute_network.webapp-vpc.id
   }
-  metadata_startup_script = <<-EOT
-    #!/bin/bash
-    apt-get update
-    apt-get install -y postgresql-13 postgresql-contrib
-    systemctl start postgresql
-    systemctl enable postgresql
-    sed -i "s/#listen_addresses = 'localhost'/listen_addresses = '*'/" /etc/postgresql/13/main/postgresql.conf
-    echo "host replication replicator 10.0.3.0/24 md5" >> /etc/postgresql/13/main/pg_hba.conf
-    systemctl restart postgresql
-    sudo -u postgres psql -c "CREATE USER replicator WITH REPLICATION ENCRYPTED PASSWORD 'your_secure_password';"
-    EOT
 
 }
 
@@ -406,18 +395,6 @@ resource "google_compute_instance" "db_standby" {
     subnetwork = google_compute_subnetwork.dbtier-subnet.id
     network    = google_compute_network.webapp-vpc.id
   }
-  metadata_startup_script = <<-EOT
-    #!/bin/bash
-    apt-get update
-    apt-get install -y postgresql-13 postgresql-contrib
-    systemctl start postgresql
-    systemctl enable postgresql
-    systemctl stop postgresql
-    rm -rf /var/lib/postgresql/13/main/*
-    export PGPASSWORD='passwprd123'
-    sudo -u postgres pg_basebackup -h ${google_compute_instance.db_primary.network_interface.0.network_ip} -D /var/lib/postgresql/13/main/ -U replicator -P -X stream -R
-    systemctl start postgresql
-    EOT
 }
 
 
