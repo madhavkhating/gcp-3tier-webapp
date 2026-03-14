@@ -312,7 +312,7 @@ resource "google_compute_firewall" "proxytoapptier-fw" {
   project       = var.project_id
   network       = google_compute_network.webapp-vpc.id
   direction     = "INGRESS"
-  source_ranges = ["10.129.1.0/26", "10.0.1.0/24"]
+  source_ranges = ["10.129.1.0/26"]
   target_tags   = ["app-tier-backend"]
   allow {
     protocol = "tcp"
@@ -332,8 +332,8 @@ resource "google_compute_firewall" "allow_web_to_ilb" {
     protocol = "tcp"
     ports    = ["80", "443", "8080"]
   }
-  source_ranges = ["10.0.1.0/24"]
-  target_tags   = ["app-tier-backend"]
+  source_ranges           = ["10.0.1.0/24"]
+  target_tags             = ["app-tier-backend"]
 
 }
 
